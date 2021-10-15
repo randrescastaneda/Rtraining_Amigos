@@ -45,6 +45,17 @@ mw <-
 dt %>%
   group_by(year) %>%
   summarise(across(.cols = c(welfare, welfare_ppp),
+                   .fns = function(y) {
+                     weighted.mean(x = y,
+                                   w = weight_p)
+                   } ))
+
+
+
+mw <-
+dt %>%
+  group_by(year) %>%
+  summarise(across(.cols = c(welfare, welfare_ppp),
                    .fns = ~ weighted.mean(x = .x,
                                    w = weight_p)))
 
@@ -65,5 +76,65 @@ dt %>%
                    }))
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## FGT measures --------
 
+
+# Usando Base R
+povlines <- c(1.9, 3.2, 5.5)
+alphas   <- c(0, 1, 2)
+
+wvar <- dt$welfare_ppp
+
+for (p in povlines) {
+
+  for (a in alphas) {
+    var_name <-  paste0("fgt", a, "_", 100*p)
+
+    dt[var_name] <-
+      100*((wvar < p)*(1-(wvar/p))^a)
+  }
+}
+
+# using functional programming with purrr
+fgt <- function(p, a, wvar, weghts) {
+    x <- 100*((wvar < p)*(1-(wvar/p))^a)
+    weighted.mean(x, weights)
+}
+
+vecs <- expand_grid(p = povlines,
+                    a = alphas)
+
+d <-
+purrr::map2(.x = vecs$p,
+            .y = vecs$a,
+            .f = fgt,
+            wvar = wvar
+            )
+
+
+
+
+dt %>%
+  group_by(year) %>%
+  summarise(across(.cols = matches("^fgt0.+"),
+                   .fns = ~ weighted.mean(x = .x,
+                                         w = weight_p)
+                     ))
+
+
+dt %>%
+  group_by(year) %>%
+  summarise(across(.cols = starts_with("fgt0"),
+                   .fns = ~ weighted.mean(x = .x,
+                                         w = weight_p)
+                     ))
+
+
+dt %>%
+  group_by(year) %>%
+  summarise(across(.cols = c(fgt0_190, fgt0_320, fgt0_550),
+                   .fns = ~ weighted.mean(x = .x,
+                                         w = weight_p)
+                     ))
 
