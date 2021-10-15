@@ -97,10 +97,11 @@ for (p in povlines) {
 }
 
 # using functional programming with purrr
-fgt <- function(p, a, wvar, weghts) {
-    x <- 100*((wvar < p)*(1-(wvar/p))^a)
-    weighted.mean(x, weights)
+fgt <- function(p, a, wvar) {
+    100*((wvar < p)*(1-(wvar/p))^a)
+
 }
+
 
 vecs <- expand_grid(p = povlines,
                     a = alphas)
@@ -114,6 +115,14 @@ purrr::map2(.x = vecs$p,
 
 
 
+headcount <- function(p, a, wvar, weghts) {
+    x <- 100*((wvar < p)*(1-(wvar/p))^a)
+    weighted.mean(x, weights)
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## calculate headcount --------
 
 dt %>%
   group_by(year) %>%
